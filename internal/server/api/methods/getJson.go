@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
-	"math"
 	"net/http"
 )
 
@@ -55,14 +54,26 @@ func (service *Service) GetData(c *gin.Context) {
 		monthsMap[model.Ethereum.Transactions[i].Time[3:5]] += model.Ethereum.Transactions[i].GasValue
 		dayMap[model.Ethereum.Transactions[i].Time[6:8]][0] += model.Ethereum.Transactions[i].GasPrice
 		dayMap[model.Ethereum.Transactions[i].Time[6:8]][1] += 1
-		total += total + model.Ethereum.Transactions[i].GasPrice*model.Ethereum.Transactions[i].GasValue
+		total = model.Ethereum.Transactions[i].GasPrice*model.Ethereum.Transactions[i].GasValue + total
 	}
 
-	fmt.Println("gas per months: ", monthsMap)
+	fmt.Println("gas per month: ")
+	for _, k := range TimeMethod.Sort(monthsMap) {
+		fmt.Println(k, ": ", monthsMap[k])
+	}
 
 	dayAverage := dayMethod.CountAverage(dayMap)
-	fmt.Println("average: ", dayAverage)
+	fmt.Println("average sum")
+	for _, k := range TimeMethod.Sort(dayAverage) {
+		fmt.Println(k, ": ", dayAverage[k])
+	}
 
-	fmt.Println(math.Round(total*100) / 100)
+	fmt.Printf("total: %f\n", total)
+
+	//fmt.Println("gas per months: ", monthsMap)
+	//
+	//fmt.Println("average: ", dayAverage)
+
+	//fmt.Println(math.Round(total*100) / 100)
 
 }

@@ -9,6 +9,7 @@ type Service struct {
 type Map interface {
 	CreateMap(n int) []string
 	CreateMonthMap() map[string]float64
+	Sort(m map[string]float64) []string
 }
 
 func (service *Service) CreateMap(n int) map[string][]float64 {
