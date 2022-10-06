@@ -13,6 +13,8 @@ import (
 	"net/http"
 )
 
+// todo: частотное распределение, например сколько раз за весь период встретилась одинаковая цена
+
 type Service struct {
 	service *Json
 }
@@ -49,6 +51,7 @@ func (service *Service) GetData(c *gin.Context) {
 
 	monthsMap := TimeMethod.CreateMapWithoutArray(12)
 	dayMap := TimeMethod.CreateMap(31)
+
 	var total float64
 	for i := 0; i < len(model.Ethereum.Transactions); i++ {
 		monthsMap[model.Ethereum.Transactions[i].Time[3:5]] += model.Ethereum.Transactions[i].GasValue
@@ -70,10 +73,19 @@ func (service *Service) GetData(c *gin.Context) {
 
 	fmt.Printf("total: %f\n", total)
 
-	//fmt.Println("gas per months: ", monthsMap)
-	//
-	//fmt.Println("average: ", dayAverage)
+	data := models.Data{
+		monthsMap,
+		dayAverage,
+		"none",
+		total,
+	}
 
-	//fmt.Println(math.Round(total*100) / 100)
+	newData, err := json.Marshal(data)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("data: ", string(newData))
 
 }
