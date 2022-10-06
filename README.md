@@ -13,7 +13,7 @@
 >
 > Необходимо послать на сервер запрос 
 >
-> `curl localhost:8080/api/getJson`
+> `curl localhost:8080/api/getData`
 
 # :card_index_dividers: Стек технологий
  - gin-gonic
