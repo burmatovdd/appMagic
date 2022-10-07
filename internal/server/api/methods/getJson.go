@@ -3,6 +3,7 @@ package methods
 import (
 	appMagicConfig "appMagic/configs/server"
 	"appMagic/internal/server/api/methods/helpers"
+	"appMagic/internal/server/frequency"
 	"appMagic/internal/server/gasPerDay"
 	"appMagic/internal/server/models"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 )
 
 // todo: частотное распределение, например сколько раз за весь период встретилась одинаковая цена
@@ -27,6 +29,7 @@ func (service *Service) GetData(c *gin.Context) {
 	model := models.Eth{}
 	method := appMagicConfig.Service{}
 	TimeMethod := helpers.Service{}
+	Frequency := frequency.Service{}
 	dayMethod := gasPerDay.Service{}
 
 	config, err := method.Loader("configs/server")
@@ -51,6 +54,7 @@ func (service *Service) GetData(c *gin.Context) {
 
 	monthsMap := TimeMethod.CreateMapWithoutArray(12)
 	dayMap := TimeMethod.CreateMap(31)
+	hourMap := TimeMethod.CreateHourMap(24)
 
 	var total float64
 	for i := 0; i < len(model.Ethereum.Transactions); i++ {
@@ -58,30 +62,42 @@ func (service *Service) GetData(c *gin.Context) {
 		dayMap[model.Ethereum.Transactions[i].Time[6:8]][0] += model.Ethereum.Transactions[i].GasPrice
 		dayMap[model.Ethereum.Transactions[i].Time[6:8]][1] += 1
 		total = model.Ethereum.Transactions[i].GasPrice*model.Ethereum.Transactions[i].GasValue + total
+		for key, _ := range hourMap {
+			if key == model.Ethereum.Transactions[i].Time[9:14] {
+				hourMap[key] = append(hourMap[key], models.FrequencyInfo{
+					Value: int(model.Ethereum.Transactions[i].GasPrice),
+					Count: 0,
+				})
+			}
+		}
 	}
 
-	fmt.Println("gas per month: ")
-	for _, k := range TimeMethod.Sort(monthsMap) {
-		fmt.Println(k, ": ", monthsMap[k])
-	}
-
+	newHourMap := Frequency.Count(hourMap)
 	dayAverage := dayMethod.CountAverage(dayMap)
-	fmt.Println("average sum")
-	for _, k := range TimeMethod.Sort(dayAverage) {
-		fmt.Println(k, ": ", dayAverage[k])
-	}
+	//
+	freqArray := []models.Frequency{}
 
-	fmt.Printf("total: %f\n", total)
+	keys := make([]string, 0, len(newHourMap))
+	for k := range newHourMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		freqArray = append(freqArray, models.Frequency{
+			Time:          key,
+			FrequencyInfo: newHourMap[key],
+		})
+	}
 
 	data := models.Data{
 		monthsMap,
 		dayAverage,
-		"none",
+		freqArray,
 		total,
 	}
 
 	newData, err := json.Marshal(data)
-
 	if err != nil {
 		log.Fatal(err)
 	}
