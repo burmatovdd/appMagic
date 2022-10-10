@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"appMagic/internal/server/models"
 	"strconv"
 )
 
@@ -29,14 +28,14 @@ func (service *Service) CreateMap(n int) map[string][]float64 {
 	return m
 }
 
-func (service *Service) CreateHourMap(n int) map[string][]models.FrequencyInfo {
-	m := make(map[string][]models.FrequencyInfo)
+func (service *Service) CreateHourMap(n int) map[string]map[string]int {
+	m := make(map[string]map[string]int)
 	for i := 0; i < n; i++ {
 		if i < 10 {
-			m["0"+strconv.Itoa(i)+":00"] = []models.FrequencyInfo{}
+			m["0"+strconv.Itoa(i)+":00"] = map[string]int{}
 			continue
 		}
-		m[strconv.Itoa(i)+":00"] = []models.FrequencyInfo{}
+		m[strconv.Itoa(i)+":00"] = map[string]int{}
 	}
 	return m
 }

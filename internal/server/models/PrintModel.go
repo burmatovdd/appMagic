@@ -8,8 +8,8 @@ type Data struct {
 }
 
 type Frequency struct {
-	Time          string          `json:"time"`
-	FrequencyInfo []FrequencyInfo `json:"frequencyInfo"`
+	Time          string         `json:"time"`
+	FrequencyInfo map[string]int `json:"frequencyInfo"`
 }
 
 type FrequencyInfo struct {
